@@ -26,7 +26,7 @@ require(cowplot)
 #setwd("/Users/Yuki/Dropbox/業務/キチジ太平洋北部/SA2021")
 dir = "/Users/Yuki/Dropbox/業務/キチジ太平洋北部/SA2021/"
 knitr::opts_chunk$set(echo = TRUE)
-year = 2021
+n_year = 2021
 options(warn = -1)
 ```
 
@@ -1122,7 +1122,7 @@ z_abc = f_limit+M
 table_s1 = data.frame(Target_Limit = c("Target", "Limit"), ABC_tons = c(abc_target, abc_limit), 漁獲割合 = c(rate_target, rate_limit), 現状のF値からの増減 = c(changeFpercent_target$`mean(f)`, changeFpercent_limit$`mean(f)`))
 
 total_catch_pref = merge %>% gather(key = pref, value = tons, 2:ncol(merge)) %>% summarize(sum(tons)/1000)
-table_s2 = data.frame(year = rep((year-5):year+1), 資源量_tons = abind(trend %>% dplyr::filter(year > 2016) %>% select(total), total_biomass_next, along = 1), 親魚量 = abind(srr %>% filter(year2 > 2016) %>% mutate(biomass2 = biomass/1000000) %>% select(biomass2), NA, along = 1), 漁獲量_tons = abind("not_change", "not_change", "not_change", total_catch_pref, catch_this, NA, along = 1), F = abind(fishing_trend %>% filter(year > 2016, data == "f") %>% select(value), f_current, NA, along = 1), 漁獲割合 = abind(fishing_trend %>% filter(year > 2016, data == "rate") %>% select(value), rate_this, NA, along = 1))
+table_s2 = data.frame(year = rep((n_year-5):n_year+1), 資源量_tons = abind(trend %>% dplyr::filter(year > (n_year-5)) %>% select(total), total_biomass_next, along = 1), 親魚量 = abind(srr %>% filter(year2 > (n_year-5)) %>% mutate(biomass2 = biomass/1000000) %>% select(biomass2), NA, along = 1), 漁獲量_tons = abind("not_change", "not_change", "not_change", total_catch_pref, catch_this, NA, along = 1), F = abind(fishing_trend %>% filter(year > (n_year-5), data == "f") %>% select(value), f_current, NA, along = 1), 漁獲割合 = abind(fishing_trend %>% filter(year > (n_year-5), data == "rate") %>% select(value), rate_this, NA, along = 1))
 
 colnames(table_s2) = c("年", "資源量_tons", "親魚量_tons", "漁獲量_tons", "F", "漁獲割合")
 
@@ -1869,7 +1869,7 @@ total_catch_pref[1,1]
 
 #### 2020年の沖底の漁獲量（2段落目）
 ```{r trend of okisoko, echo=F}
-okisoko_all
+okisoko_all %>% filter(year == (n_year-1))
 # catchF %>% filter(year < 2011) %>% spread(key = year, value = catch)
 # catchF %>% filter(year > 2010) %>% spread(key = year, value = catch)
 ```
@@ -1885,19 +1885,19 @@ effort_t2
 ### (4) 資源量と漁獲割合の推移
 #### 推定資源量（1段落目）
 ```{r table_biomass, echo=F}
-trend %>% dplyr::rename(ton = total)
+trend %>% dplyr::rename(ton = total) %>% filter(year == n_year)
 # trend %>% filter(year < 2011) %>% spread(key = year, value = total)
 # trend %>% filter(year > 2010) %>% spread(key = year, value = total)
 ```
 
 #### 資源尾数（2段落目）
 ```{r table_N, echo=F, message=F}
-N_trend
+N_trend %>% filter(year == n_year)
 ```
 
 #### F値（3段落目）
 ```{r table_fishing trend1, echo=F}
-fishing_trend %>% filter(data == "f") %>% select(-data, -data2) %>% dplyr::rename("F" = value)
+fishing_trend %>% filter(data == "f") %>% select(-data, -data2) %>% dplyr::rename("F" = value) %>% filter(year == (n_year-1))
 # fishing_trend %>% filter(year < 2011, data == "f") %>% spread(key = year, value = value)
 # fishing_trend %>% filter(year > 2010, data == "f") %>% spread(key = year, value = value)
 # fishing_trend %>% filter(year < 2011, data == "rate") %>% spread(key = year, value = value)
@@ -1906,7 +1906,7 @@ fishing_trend %>% filter(data == "f") %>% select(-data, -data2) %>% dplyr::renam
 
 #### 漁獲割合（3段落目）
 ```{r table_fishing trend2, echo=F}
-fishing_trend %>% filter(data == "rate") %>% select(-data, -data2) %>% dplyr::rename("%" = value)
+fishing_trend %>% filter(data == "rate") %>% select(-data, -data2) %>% dplyr::rename("%" = value) %>% filter(year == (n_year-1))
 # fishing_trend %>% filter(year < 2011, data == "f") %>% spread(key = year, value = value)
 # fishing_trend %>% filter(year > 2010, data == "f") %>% spread(key = year, value = value)
 # fishing_trend %>% filter(year < 2011, data == "rate") %>% spread(key = year, value = value)
@@ -1915,7 +1915,7 @@ fishing_trend %>% filter(data == "rate") %>% select(-data, -data2) %>% dplyr::re
 
 ### (5) 再生産関係
 ```{r rps, echo=F}
-srr %>% select(year2, rps) %>% dplyr::rename(year = year2)
+srr %>% select(year2, rps) %>% dplyr::rename(year = year2) %>% filter(year == (n_year-3))
 ```
 
 ### (7) 資源の水準・動向
@@ -1964,10 +1964,10 @@ s1_current
 #### 2021年の資源量と資源尾数（3段落目）
 ```{r stock 2021, message=F}
 #資源量
-(trend %>% dplyr::rename(ton = total) %>% filter(year == (as.numeric(str_sub(Sys.Date(), 1, 4)))))
+(trend %>% dplyr::rename(ton = total) %>% filter(year == (n_year)))
 
 #尾数
-(est2 %>% dplyr::group_by(year) %>% dplyr::summarize(N_thou = sum(total)/1000) %>% filter(year == (as.numeric(str_sub(Sys.Date(), 1, 4)))))
+(est2 %>% dplyr::group_by(year) %>% dplyr::summarize(N_thou = sum(total)/1000) %>% filter(year == (n_year)))
 ```
 
 #### 2022年のABC（4段落目と表）
@@ -1977,13 +1977,13 @@ table_s1
 
 ### (4) ABCの再評価（表）
 <!----
-`r (year - 1)`年の資源量は`r (total_biomass_this = sum(abund_abc$biomass_est))`，F limitは`r (total_biomass_this = sum(abund_abc$biomass_est))`，F targetは`r (re_abc_target = (f_target*(1-exp(-z_abc)))/z_abc*total_biomass_this)`．  
+`r (n_year - 1)`年の資源量は`r (total_biomass_this = sum(abund_abc$biomass_est))`，F limitは`r (total_biomass_this = sum(abund_abc$biomass_est))`，F targetは`r (re_abc_target = (f_target*(1-exp(-z_abc)))/z_abc*total_biomass_this)`．  
 漁獲量とFは要約にある．  
 --->
 #### 2020（3行目）
 ```{r reABC 2 years ago}
 # 資源量 (2020)
-(total_biomass_last = sum(est %>% filter(year == (as.numeric(str_sub(Sys.Date(), 1, 4))-1)) %>% select(biomass)))
+(total_biomass_last = sum(est %>% filter(year == (n_year-1)) %>% select(biomass)))
 
 # limit (2020)
 (re_abc_limit_last = (f_limit*(1-exp(-z_abc)))/z_abc*total_biomass_last)
