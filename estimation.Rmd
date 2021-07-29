@@ -12,12 +12,8 @@ require(xlsx)
 require(openxlsx)
 require(readxl)
 require(tidyverse)
-# require(tidyr)
-# require(dplyr)
 require(plyr)
-# require(ggplot2)
 require(investr)
-# require(stringr)
 require(abind)
 require(gridExtra)
 require(ggrepel)
@@ -27,6 +23,8 @@ require(mapdata)
 
 dir = "/Users/Yuki/Dropbox/業務/キチジ太平洋北部/SA2021/"
 fileEncoding = "CP932"
+
+# not change
 knitr::opts_chunk$set(echo = TRUE)
 n_year = 2021
 options(warn = -1)
@@ -1199,7 +1197,7 @@ fig10 = g+p+l+lab+theme_bw(base_family = "HiraKakuPro-W3")+ theme(legend.positio
 est = est %>% mutate(age2 = ifelse(age > 4, "5歳以上", "2-4歳"))
 summary(est)
 
-N_trend = est %>% dplyr::group_by(year, age2) %>% dplyr::summarize(number = sum(number)/1000)
+N_trend = est %>% na.omit() %>% dplyr::group_by(year, age2) %>% dplyr::summarize(number = sum(number)/1000)
 
 
 est2 = est
@@ -1565,12 +1563,12 @@ z_abc = f_limit+M
 (changeFpercent_limit = (0.058-f_current)*100/f_current)
 (changeFpercent_target = (0.047-f_current)*100/f_current)
 
-table_s1 = data.frame(Target_Limit = c("Target", "Limit"), ABC_tons = c(abc_target, abc_limit), 漁獲割合 = c(rate_target, rate_limit), 現状のF値からの増減 = c(changeFpercent_target$`mean(f)`, changeFpercent_limit$`mean(f)`))
+table_s1 = data.frame(Target_Limit = c("Target", "Limit"), ABC_ton = c(abc_target, abc_limit), 漁獲割合 = c(rate_target, rate_limit), 現状のF値からの増減 = c(changeFpercent_target$`mean(f)`, changeFpercent_limit$`mean(f)`))
 
 total_catch_pref = merge %>% gather(key = pref, value = tons, 2:ncol(merge)) %>% summarize(sum(tons)/1000)
-table_s2 = data.frame(year = rep((n_year-5):n_year+1), 資源量_tons = abind(trend %>% dplyr::filter(year > (n_year-5)) %>% select(total), total_biomass_next, along = 1), 親魚量 = abind(srr %>% filter(year2 > (n_year-5)) %>% mutate(biomass2 = biomass/1000000) %>% select(biomass2), NA, along = 1), 漁獲量_tons = abind("not_change", "not_change", "not_change", total_catch_pref, catch_this, NA, along = 1), F = abind(fishing_trend %>% filter(year > (n_year-5), data == "f") %>% select(value), f_current, NA, along = 1), 漁獲割合 = abind(fishing_trend %>% filter(year > (n_year-5), data == "rate") %>% select(value), rate_this, NA, along = 1))
+table_s2 = data.frame(year = rep((n_year-5):n_year+1), 資源量_ton = abind(trend %>% dplyr::filter(year > (n_year-5)) %>% select(total), total_biomass_next, along = 1), 親魚量 = abind(srr %>% filter(year2 > (n_year-5)) %>% mutate(biomass2 = biomass/1000000) %>% select(biomass2), NA, along = 1), 漁獲量_ton = abind("not_change", "not_change", "not_change", total_catch_pref, catch_this, NA, along = 1), F = abind(fishing_trend %>% filter(year > (n_year-5), data == "f") %>% select(value), f_current, NA, along = 1), 漁獲割合 = abind(fishing_trend %>% filter(year > (n_year-5), data == "rate") %>% select(value), rate_this, NA, along = 1))
 
-colnames(table_s2) = c("年", "資源量_tons", "親魚量_tons", "漁獲量_tons", "F", "漁獲割合")
+colnames(table_s2) = c("年", "資源量_ton", "親魚量_ton", "漁獲量_ton", "F", "漁獲割合")
 
 ```
 
@@ -1986,6 +1984,8 @@ dev.off()
 
 
 
+
+
 # 要約
 #### 今年の資源量（表の上の文章）
 `r trend %>% filter(year == 2021)`
@@ -2030,19 +2030,22 @@ effort_t2
 ### (4) 資源量と漁獲割合の推移
 #### 推定資源量（1段落目）
 ```{r table_biomass, echo=F}
-trend %>% dplyr::rename(ton = total) %>% filter(year == n_year)
+trend %>% dplyr::rename(ton = total)
+# %>% filter(year == n_year)
 # trend %>% filter(year < 2011) %>% spread(key = year, value = total)
 # trend %>% filter(year > 2010) %>% spread(key = year, value = total)
 ```
 
 #### 資源尾数（2段落目）
 ```{r table_N, echo=F, message=F}
-N_trend %>% filter(year == n_year)
+N_trend %>% dplyr::rename(N_thou = number, age = age2)
+
 ```
 
 #### F値（3段落目）
 ```{r table_fishing trend1, echo=F}
-fishing_trend %>% filter(data == "f") %>% select(-data, -data2) %>% dplyr::rename("F" = value) %>% filter(year == (n_year-1))
+fishing_trend %>% filter(data == "f") %>% select(-data, -data2) %>% dplyr::rename("F" = value)
+# %>% filter(year == (n_year-1))
 # fishing_trend %>% filter(year < 2011, data == "f") %>% spread(key = year, value = value)
 # fishing_trend %>% filter(year > 2010, data == "f") %>% spread(key = year, value = value)
 # fishing_trend %>% filter(year < 2011, data == "rate") %>% spread(key = year, value = value)
@@ -2051,7 +2054,8 @@ fishing_trend %>% filter(data == "f") %>% select(-data, -data2) %>% dplyr::renam
 
 #### 漁獲割合（3段落目）
 ```{r table_fishing trend2, echo=F}
-fishing_trend %>% filter(data == "rate") %>% select(-data, -data2) %>% dplyr::rename("%" = value) %>% filter(year == (n_year-1))
+fishing_trend %>% filter(data == "rate") %>% select(-data, -data2) %>% dplyr::rename("%" = value)
+# %>% filter(year == (n_year-1))
 # fishing_trend %>% filter(year < 2011, data == "f") %>% spread(key = year, value = value)
 # fishing_trend %>% filter(year > 2010, data == "f") %>% spread(key = year, value = value)
 # fishing_trend %>% filter(year < 2011, data == "rate") %>% spread(key = year, value = value)
