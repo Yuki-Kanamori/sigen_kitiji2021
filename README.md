@@ -25,5 +25,4 @@
 ○trawl_ns_length2.csv: 2020年のトロール調査で得られた南北別体長別資源尾数詳細（mdbより）  
 ○lonlat2020.csv: 2020年のトロール調査点の緯度経度情報（mdbより）  
 ●marmap_coord.csv: 等深線の情報（由来不明）  
-●survey_N_at_age_length.csv: 2018年までのトロール調査で得られた年齢別体長別資源尾数（mdbより） 
 
