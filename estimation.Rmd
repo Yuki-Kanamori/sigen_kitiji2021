@@ -1914,7 +1914,7 @@ mode(all$size_class)
 summary(all)
 
 g = ggplot(all, aes(x = size_class, y = number/1000000, fill = age))
-b = geom_bar(stat = "identity", width = 0.5, colour = "black", size = 0.5)
+b = geom_bar(stat = "identity", width = 0.8, colour = "black", size = 0.5)
 lab = labs(x = "体長 (cm)", y = "資源尾数 (百万尾)", fill = "年齢")
 col_catch = c("red1", "red1", "darkorange", "goldenrod1", "goldenrod4", "grey60", "palegreen3", "palegreen4", "steelblue3", "steelblue4", "grey60")
 c = scale_fill_manual(values = col_catch)
