@@ -1728,7 +1728,8 @@ fig4 = local_map+theme_bw(base_family = "HiraKakuPro-W3")+th+p+c+labs+
   annotate("text",label="尻屋崎", x=144.5, y=41, family="HiraKaku", size = 6)+
   annotate("text",label="岩手", x=144.3, y=39.5, family="HiraKaku", size = 6)+
   annotate("text",label="金華山", x=144.4, y=38.5, family="HiraKaku", size = 6)+
-  annotate("text",label="房総", x=144.3, y=37, family="HiraKaku", size = 6) 
+  annotate("text",label="常磐", x=144.3, y=37, family="HiraKaku", size = 6)+
+  annotate("text",label="房総", x=144.3, y=36, family="HiraKaku", size = 6)
 ```  
 
 
