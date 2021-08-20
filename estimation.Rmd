@@ -102,6 +102,7 @@ iba_sum = iba
 merge = ao_sum %>% dplyr::full_join(iwa_sum, by = "method2") %>% dplyr::full_join(miya_sum, by = "method2") %>% dplyr::full_join(fuku_sum, by = "method2") %>% dplyr::full_join(iba_sum, by = "method2")
 colnames(merge) = c("漁業種", "青森", "岩手", "宮城", "福島", "茨城")
 merge[is.na(merge)] = 0
+merge = merge %>% filter(漁業種 != "沖底")
 
 # total_catch_pref = merge %>% gather(key = pref, value = catch, 2:ncol(merge)) %>% dplyr::summarize(total = sum(catch)/1000)
 
@@ -125,7 +126,7 @@ summary(catch_old)
 sheets = excel_sheets(paste0(dir, "okisoko_after2019.xlsx")) #シート名の取得
 new_catchF = NULL
 for(i in 1:length(sheets)){
-  okisoko = read.xlsx(paste0(dir, "/okisoko_after2019.xlsx"), sheet = sheets[i])
+  okisoko = read.xlsx(paste0(dir, "/okisoko_after2019.xlsx"), sheet = sheets[i]) %>% filter(漁区名 != "襟裳西")
   temp = data.frame(catch = sum(okisoko$漁獲量の合計)/1000, year = as.numeric(paste0(sheets[i])))
   new_catchF = rbind(new_catchF, temp)
 }
@@ -139,7 +140,7 @@ c19 = rbind(total_catch_pref2019, c19_oki) #沖底だけ沖底漁績に置き換
 catch_new = rbind(ao_sum, iwa_sum, miya_sum, fuku_sum, iba_sum) %>% mutate(年 = 2020)
 catch_new = catch_new %>% mutate(method = ifelse(str_detect(catch_new$method2, pattern = "沖底"), "沖底", ifelse(str_detect(catch_new$method2, pattern = "小底"), "小底", "沖底・小底以外"))) %>% select(-method2) %>% dplyr::rename(year = 年) %>% dplyr::rename(catch_kg = sum) %>% mutate(sum = catch_kg/1000)
 total_catch_pref2020 = catch_new %>% filter(method != "沖底")
-c20_oki = data.frame(catch_kg = NA, year = 2020, method = "沖底", sum = new_catchF %>% filter(year == 2019) %>% select(catch) %>% dplyr::rename(sum = catch))
+c20_oki = data.frame(catch_kg = NA, year = 2020, method = "沖底", sum = new_catchF %>% filter(year == 2020) %>% select(catch) %>% dplyr::rename(sum = catch))
 c20 = rbind(total_catch_pref2020, c20_oki)
 
 catch = rbind(catch_old, c19 %>% select(-catch_kg), c20 %>% select(-catch_kg))
@@ -590,13 +591,14 @@ fig9 = g+b+lab+c+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_x_continuous(
 # step 1; summary ---------------------------------------------------------
 # 今年の沖底漁獲量
 # 2020年は尻屋崎が尻矢崎と入力されているもよう
+# 襟裳西は抜く
 okisoko = read.xlsx(paste0(dir, "okisoko_after2019.xlsx"), sheet = paste0((n_year-1)))
 summary(okisoko$魚種名)
 colnames(okisoko)
 summary(okisoko)
 
 okisoko = okisoko %>% mutate(method = ifelse(漁法 == 102, "2そう曳き", ifelse(漁法 == 103, "トロール", "かけ廻し"))) %>%
-  mutate(pref = ifelse(県コード == 13, "青森", ifelse(県コード == 14, "岩手", ifelse(県コード == 15, "宮城", ifelse(県コード == 18, "茨城", "福島"))))) %>% select(漁区名, method, pref, 漁獲量の合計, 網数の合計) %>% dplyr::rename(area = 漁区名, catch = 漁獲量の合計, effort = 網数の合計) %>% mutate(cpue = catch/effort)
+  mutate(pref = ifelse(県コード == 13, "青森", ifelse(県コード == 14, "岩手", ifelse(県コード == 15, "宮城", ifelse(県コード == 18, "茨城", "福島"))))) %>% select(漁区名, method, pref, 漁獲量の合計, 網数の合計) %>% dplyr::rename(area = 漁区名, catch = 漁獲量の合計, effort = 網数の合計) %>% mutate(cpue = catch/effort) %>% filter(area != "襟裳西")
 
 head(okisoko)
 colnames(okisoko)
@@ -625,7 +627,7 @@ eff_old = read.csv(paste0(dir, "effortdata_old.csv"), fileEncoding = fileEncodin
 eff_old = ddply(eff_old, .(method, year), summarize, sum = sum(effort))
 
 #2019
-oki2019 = read.xlsx(paste0(dir, "okisoko_after2019.xlsx"), sheet = "2019")
+oki2019 = read.xlsx(paste0(dir, "okisoko_after2019.xlsx"), sheet = "2019") %>% filter(漁区名 != "襟裳西")
 oki2019 = oki2019 %>% mutate(method = ifelse(漁法 == 102, "2そう曳き", ifelse(漁法 == 103, "トロール", "かけ廻し"))) %>%
   mutate(pref = ifelse(県コード == 13, "青森", ifelse(県コード == 14, "岩手", ifelse(県コード == 15, "宮城", ifelse(県コード == 18, "茨城", "福島"))))) %>% select(漁区名, method, pref, 漁獲量の合計, 網数の合計) %>% dplyr::rename(area = 漁区名, catch = 漁獲量の合計, effort = 網数の合計) %>% mutate(cpue = catch/effort)
 
@@ -977,16 +979,18 @@ summary(length)
 # catchF = rbind(old_catchF, new_catchF)
 ########################################################################
 # okisoko
-sheets = excel_sheets(paste0(dir, "okisoko_after2019.xlsx")) #シート名の取得
-new_catchF = NULL
-for(i in 1:length(sheets)){
-  okisoko = read.xlsx(paste0(dir, "/okisoko_after2019.xlsx"), sheet = sheets[i])
-  temp = data.frame(catch = sum(okisoko$漁獲量の合計)/1000, year = as.numeric(paste0(sheets[i])))
-  new_catchF = rbind(new_catchF, temp)
-}
+# sheets = excel_sheets(paste0(dir, "okisoko_after2019.xlsx")) #シート名の取得
+# new_catchF = NULL
+# for(i in 1:length(sheets)){
+#   okisoko = read.xlsx(paste0(dir, "/okisoko_after2019.xlsx"), sheet = sheets[i]) %>% filter(漁区名 != "襟裳西")
+#   temp = data.frame(catch = sum(okisoko$漁獲量の合計)/1000, year = as.numeric(paste0(sheets[i])))
+#   new_catchF = rbind(new_catchF, temp)
+# }
 
-old_catchF = olddata %>% filter(data == 'catch_fisheries') %>% gather(key = year_tag, value = catch, 2:(ncol(olddata)-1)) %>% mutate(year = as.numeric(str_sub(year_tag, 2, 5))) %>% select(-year_tag, -data,-age)
-okisoko_all = rbind(old_catchF, new_catchF) #資源評価には使わないが，これはこれで必要なのでオブジェクト名を変えて残した
+old_catchF = olddata %>% filter(data == 'catch_fisheries') %>% gather(key = year_tag, value = catch, 2:(ncol(olddata)-1)) %>% mutate(year = as.numeric(str_sub(year_tag, 2, 5))) %>% select(-year_tag, -data,-age) #これは表1の古いデータ（つまり県のデータ+沖底データ）
+new_catchF = catch2 %>% filter(year > (n_year-3)) %>% dplyr::rename(catch = total_catch_t)
+catchF = rbind(old_catchF, new_catchF)
+# okisoko_all = rbind(old_catchF, new_catchF) #資源評価には使わないが，これはこれで必要なのでオブジェクト名を変えて残した
 
 
 
@@ -1002,8 +1006,6 @@ okisoko_all = rbind(old_catchF, new_catchF) #資源評価には使わないが�
 # # total_catch_pref = data.frame(year = 2020, catch = total_catch_pref)
 # # colnames(total_catch_pref) = c("year", "catch")
 # # catchF = rbind(total_catch_pref_old, total_catch_pref) #catchFは県からのデータを使う
-
-catchF = catch2 %>% filter(year > 1994) %>% dplyr::rename(catch = total_catch_t) #図5に使ったデータ
 summary(catchF)
 
 ### survival rate at age
@@ -1532,7 +1534,8 @@ fig15 = g+p+pa+lab+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_x_continuou
 ```
 
 ```{r ABC, echo=F, results=F, warning=F}
-f_current = fishing_rate %>% filter(year > ((as.numeric(str_sub(Sys.Date(), 1, 4))-1)-3)) %>% summarize(mean(f))
+f_current = fishing_rate %>% filter(year > (n_year-4)) %>% summarize(mean(f))
+# f_current = fishing_rate %>% filter(year > ((as.numeric(str_sub(Sys.Date(), 1, 4))-1)-3)) %>% summarize(mean(f))
 
 ####### mistake in 2020 assessment #######
 # s_current = exp(-(Z %>% filter(year == (as.numeric(str_sub(Sys.Date(), 1, 4))-1)) %>% select(z)))
@@ -1540,12 +1543,16 @@ s_current = exp(-(M+f_current))
 
 # s1_pre = survival %>% filter(year > ((as.numeric(str_sub(Sys.Date(), 1, 4))-1)-3), age == 2)
 # s1_current = mean(s1_pre$surv)
-s1_current = survival %>% filter(year > ((as.numeric(str_sub(Sys.Date(), 1, 4))-1)-3), age == 2) %>% summarize(mean(surv))
+# s1_current = survival %>% filter(year > ((as.numeric(str_sub(Sys.Date(), 1, 4))-1)-3), age == 2) %>% summarize(mean(surv))
+s1_current = survival %>% filter(year > (n_year-4), age == 2) %>% summarize(mean(surv))
 
-number_2old_oct_last = trawl %>% filter(year == as.numeric(str_sub(Sys.Date(), 1, 4))-1, age == 1) %>% select(number)/1000 * s1_current
-number_2old_jan_this = number_2old_oct_last*survival_2month %>% filter(year == as.numeric(str_sub(Sys.Date(), 1, 4))-1) %>% select(surv)
+# number_2old_oct_last = trawl %>% filter(year == as.numeric(str_sub(Sys.Date(), 1, 4))-1, age == 1) %>% select(number)/1000 * s1_current
+# number_2old_jan_this = number_2old_oct_last*survival_2month %>% filter(year == as.numeric(str_sub(Sys.Date(), 1, 4))-1) %>% select(surv)
+# number_2old_jan_this_sel = number_2old_jan_this/q %>% filter(year == as.numeric(str_sub(Sys.Date(), 1, 4))-1, age == 2) %>% select(q)
+number_2old_oct_last = trawl %>% filter(year == (n_year-1), age == 1) %>% select(number)/1000 * s1_current
+number_2old_jan_this = number_2old_oct_last*survival_2month %>% filter(year == (n_year-1)) %>% select(surv)
 
-number_2old_jan_this_sel = number_2old_jan_this/q %>% filter(year == as.numeric(str_sub(Sys.Date(), 1, 4))-1, age == 2) %>% select(q)
+number_2old_jan_this_sel = number_2old_jan_this/q %>% filter(year == (n_year-1), age == 2) %>% select(q)
 
 
 ####### mistake in 2020 assessment #######
@@ -1554,8 +1561,11 @@ number_2old_jan_this_sel = number_2old_jan_this/q %>% filter(year == as.numeric(
 # abund_this =  est %>% filter(year == (as.numeric(str_sub(Sys.Date(), 1, 4))-1)) %>% select(number, biomass, year, age) %>% dplyr::rename(number_est = number, biomass_est = biomass)
 # abund_this = left_join(abund_this, weight %>% filter(year == (as.numeric(str_sub(Sys.Date(), 1, 4))-1)), by = c("year", "age"))
 ################################################################################################
-abund_this =  est %>% filter(year == (as.numeric(str_sub(Sys.Date(), 1, 4)))) %>% select(number, biomass, year, age) %>% dplyr::rename(number_est = number, biomass_est = biomass) # get the abundance of this year (2021)
-abund_this = left_join(abund_this, weight %>% filter(year == (as.numeric(str_sub(Sys.Date(), 1, 4))-1)), by = c("age")) # get the weight of last year (2020) and join the weight data into the abundance of this year (2021)
+# abund_this =  est %>% filter(year == (as.numeric(str_sub(Sys.Date(), 1, 4)))) %>% select(number, biomass, year, age) %>% dplyr::rename(number_est = number, biomass_est = biomass) # get the abundance of this year (2021)
+# abund_this = left_join(abund_this, weight %>% filter(year == (as.numeric(str_sub(Sys.Date(), 1, 4))-1)), by = c("age")) # get the weight of last year (2020) and join the weight data into the abundance of this year (2021)
+
+abund_this =  est %>% filter(year == n_year) %>% select(number, biomass, year, age) %>% dplyr::rename(number_est = number, biomass_est = biomass) # get the abundance of this year (2021)
+abund_this = left_join(abund_this, weight %>% filter(year == (n_year-1)), by = c("age")) # get the weight of last year (2020) and join the weight data into the abundance of this year (2021)
 
 # next_year = NULL
 # for(i in 1:(length(abund_this$age)-1)){
@@ -2151,14 +2161,14 @@ table_s2
 #### 2020年の全漁業種類を合わせた漁獲量（1段落目）
 ```{r trend of pref. fisheries catch, echo=F}
 # total_catch_pref[1,1]
-catch2 %>% filter(year == (n_year-1))
+catchF %>% filter(year == (n_year-1)) %>% select(year, catch) %>% dplyr::rename(catch_ton = catch)
 ```
 
 #### 2020年の沖底の漁獲量（2段落目）
 ```{r trend of okisoko, echo=F}
-okisoko_all %>% filter(year == (n_year-1))
-# catchF %>% filter(year < 2011) %>% spread(key = year, value = catch)
-# catchF %>% filter(year > 2010) %>% spread(key = year, value = catch)
+# okisoko_all %>% filter(year == (n_year-1))
+# sum(okisoko$漁獲量の合計)/1000
+c20_oki %>% select(year, sum) %>% dplyr::rename(catch_ton = sum)
 ```
 
 ### (3) 漁獲努力量の推移
