@@ -32,7 +32,6 @@ n_year = 2021
 options(warn = -1)
 ```
 
-
 ```{r pref. catch, echo=F, message=FALSE, results='hide', warning=F}
 ### aomori
 ao = read.xlsx(paste0(dir, "catch_pref.xlsx"), sheet = "ao") %>% select(漁法, 数量kg) %>% dplyr::rename( method = 漁法, catch_kg = 数量kg)
@@ -1984,15 +1983,14 @@ th = theme(panel.grid.major = element_blank(),
 fig_a32 = g+b+lab+c+f+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_x_continuous(expand = c(0,0), breaks=seq(0, 36, by = 5))+scale_y_continuous(expand = c(0,0))
 ```
 
-
 ```{r fig2, echo=F, warning=F, message=F, results=F}
 age = rep(1:10)
-weight = c(4,8,12,18,25,33,42,52,63,75)
-length = c(5.6, 6.8, 7.9, 8.9, 9.9, 10.8, 11.7, 12.6, 13.4, 14.2)
+df_weight = c(4,8,12,18,25,33,42,52,63,75)
+df_length = c(5.6, 6.8, 7.9, 8.9, 9.9, 10.8, 11.7, 12.6, 13.4, 14.2)
 
-df = data.frame(age, weight, length)
+df = data.frame(age, df_weight, df_length)
 
-g = ggplot(df, aes(x = age, y = length))
+g = ggplot(df, aes(x = age, y = df_length))
 p = geom_point(shape = 16, size = 3)
 l = geom_line(size = 0.6, linetype = "solid")
 lab = labs(x = "年齢", y = "● 体長（cm）", shape = "")
@@ -2007,7 +2005,7 @@ th = theme(aspect.ratio = 6.88/11.49,
            strip.text.x = element_text(size = 11))
 base = g+p+l+lab+theme_bw(base_family = "HiraKakuPro-W3")+th+scale_y_continuous(breaks = seq(0, 20, by = 2), sec.axis = sec_axis(~ ., name = "○ 体重（g）"), limits = c(0, 20))+scale_x_continuous(breaks = seq(1, 10, by = 1)) 
 
-g = ggplot(df, aes(x = age, y = weight))
+g = ggplot(df, aes(x = age, y = df_weight))
 p = geom_point(shape = 1, size = 3)
 l = geom_line(size = 0.6, linetype = "solid")
 lab = labs(x = "年齢", y = "体重（g）", shape = "")
@@ -2064,6 +2062,7 @@ fig7 = g+p+l+lab+theme_bw(base_family = "HiraKakuPro-W3")+ theme(legend.position
 ```
 
 
+
 ```{r save, echo=F, warning=F, message=F, results=F}
 dir.create(paste0(dir, "output"))
 dir_output = paste0(dir, "output")
@@ -2084,7 +2083,7 @@ write.csv(abund_oct_sel %>% mutate(number_sel_thou = number_sel/1000) %>% dplyr:
 write.csv(est %>% mutate(number = number/1000) %>% dplyr::rename(number_thou = number, biomass_ton = biomass), "tableA4-7&8.csv", fileEncoding = fileEncoding, row.names=F) 
 write.csv(biomass_female %>% mutate(biomass_ton = biomass/1000000) %>% dplyr::rename(year = year2) %>% select(-biomass), "tableA4-8female.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(fishing_trend, "tableA4-9.csv", fileEncoding = fileEncoding, row.names=F)
-write.csv(fishing_trend %>% dplyr::rename(label = data2) %>% select(-data), "table9.csv", fileEncoding = fileEncoding, row.names=F) 
+write.csv(fishing_trend %>% dplyr::rename(label = data2) %>% select(-data), "tableA4-9-2.csv", fileEncoding = fileEncoding, row.names=F) 
 
 # write.csv(number_at_age %>% dplyr::rename(age_length = age), "number_at_age.csv", fileEncoding = fileEncoding, row.names=F)
 # write.csv(est, "estimated_abundance.csv", fileEncoding = fileEncoding, row.names=F) 
