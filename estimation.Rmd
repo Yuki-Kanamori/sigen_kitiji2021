@@ -2083,7 +2083,7 @@ write.csv(abund_oct_sel %>% mutate(number_sel_thou = number_sel/1000) %>% dplyr:
 write.csv(est %>% mutate(number = number/1000) %>% dplyr::rename(number_thou = number, biomass_ton = biomass), "tableA4-7&8.csv", fileEncoding = fileEncoding, row.names=F) 
 write.csv(biomass_female %>% mutate(biomass_ton = biomass/1000000) %>% dplyr::rename(year = year2) %>% select(-biomass), "tableA4-8female.csv", fileEncoding = fileEncoding, row.names=F)
 write.csv(fishing_trend, "tableA4-9.csv", fileEncoding = fileEncoding, row.names=F)
-write.csv(fishing_trend %>% dplyr::rename(label = data2) %>% select(-data), "tableA4-9-2.csv", fileEncoding = fileEncoding, row.names=F) 
+# write.csv(fishing_trend %>% dplyr::rename(label = data2) %>% select(-data), "tableA4-9-2.csv", fileEncoding = fileEncoding, row.names=F) 
 
 # write.csv(number_at_age %>% dplyr::rename(age_length = age), "number_at_age.csv", fileEncoding = fileEncoding, row.names=F)
 # write.csv(est, "estimated_abundance.csv", fileEncoding = fileEncoding, row.names=F) 
